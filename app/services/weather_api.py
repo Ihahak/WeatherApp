@@ -1,7 +1,18 @@
 import requests
 from datetime import datetime
 
-cities = {"Warszawa": {"latitude": 52.2298, "longitude": 21.0118}}  # to do: dodać więcej miast
+cities = {"Warszawa": {"latitude": 52.2298, "longitude": 21.0118},
+          "Kraków": {"latitude": 50.0647, "longitude": 19.9450},
+          "Łódź": {"latitude": 51.7592, "longitude": 19.4560},
+          "Wrocław": {"latitude": 51.1079, "longitude": 17.0385},
+          "Poznań": {"latitude": 52.4064, "longitude": 16.9252},
+          "Gdańsk": {"latitude": 54.3520, "longitude": 18.6466},
+          "Szczecin": {"latitude": 53.4285, "longitude": 14.5528},
+          "Bydgoszcz": {"latitude": 53.1235, "longitude": 18.0076},
+          "Lublin": {"latitude": 51.2465, "longitude": 22.5684},
+          "Białystok": {"latitude": 53.1325, "longitude": 23.1688},
+          "Rzeszów": {"latitude": 50.0413, "longitude": 21.9990},
+          }
 
 
 def get_forecast(latitude, longitude):
@@ -20,13 +31,16 @@ def get_forecast(latitude, longitude):
             "temperature_2m_min",
             "precipitation_probability_max",
             "wind_speed_10m_max",
-            "uv_index_max"
+            "uv_index_max",
+            "sunrise",
+            "sunset"
         ],
         "hourly": [
             "temperature_2m",
             "apparent_temperature",
             "precipitation",
-            "wind_speed_10m"
+            "wind_speed_10m",
+            "weather_code"
         ],
         "timezone": "Europe/Berlin"
     }
@@ -54,7 +68,8 @@ def get_forecast(latitude, longitude):
                 "temp": hours['temperature_2m'][j],
                 "odczuwalna_temp": hours['apparent_temperature'][j],
                 "opady": hours['precipitation'][j],
-                "wiatr": hours['wind_speed_10m'][j]
+                "wiatr": hours['wind_speed_10m'][j],
+                "kod_pogody": hours['weather_code'][j]
             }
             hour_forecast.append(h_forecast)
 
@@ -65,6 +80,8 @@ def get_forecast(latitude, longitude):
             "opady_proc": days['precipitation_probability_max'][i],
             "wiatr_predkosc": days['wind_speed_10m_max'][i],
             "indeks_uv": days['uv_index_max'][i],
+            "wschód słońca": days['sunrise'][i],
+            "zachód słońca": days['sunset'][i],
             "godziny": hour_forecast
         }
         days_formated.append(day_forecast)
