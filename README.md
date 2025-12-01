@@ -1,5 +1,5 @@
 # WeatherApp
-gurpa: Bazyluk Anna, Gasik Zuzanna, Hankus Ida
+grupa: Bazyluk Anna, Gasik Zuzanna, Hankus Ida
 
 ## Foldery i pliki projektu:
 * app - folder zawierający w sobie pliki aplikacji
