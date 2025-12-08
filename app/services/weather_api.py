@@ -1,7 +1,7 @@
 import requests
 from datetime import datetime
 
-cities = {"Warszawa": {"latitude": 52.2298, "longitude": 21.0118},
+Cities = {"Warszawa": {"latitude": 52.2298, "longitude": 21.0118},
           "Kraków": {"latitude": 50.0647, "longitude": 19.9450},
           "Łódź": {"latitude": 51.7592, "longitude": 19.4560},
           "Wrocław": {"latitude": 51.1079, "longitude": 17.0385},
@@ -13,7 +13,6 @@ cities = {"Warszawa": {"latitude": 52.2298, "longitude": 21.0118},
           "Białystok": {"latitude": 53.1325, "longitude": 23.1688},
           "Rzeszów": {"latitude": 50.0413, "longitude": 21.9990},
           }
-
 
 def get_forecast(latitude, longitude):
     """
@@ -88,16 +87,38 @@ def get_forecast(latitude, longitude):
 
     return days_formated
 
-
 def get_forecast_by_city(city):
     """
     Funkcja pobiera nazwę miasta razem z jego współrzędnymi geograficznymi i zwraca sformatowane dane prognozy pogody najbliższych 7 dni.
     :param city: Miasto, dla którego funkcja pobiera prognozę pogody i jego koordynaty
     :return: lista ze sformatowanymi danymi prognozy pogody
     """
-    latitude = city["latitude"]
-    longitude = city["longitude"]
-    return get_forecast(latitude, longitude)
+    city_data = Cities[city]
+    return get_forecast(city_data["latitude"], city_data["longitude"])
 
+def get_weather_now(latitude, longitude):
+    """
+    Funkcja zwracająca dane pogodowe dla aktualnej godziny dla danego miejsca.
+    :param latitude: szerokość geograficzna
+    :param longitude: długość geograficzna
+    :return: słownik z danymi pogodowymi dla aktualnej godziny
+    """
+    whole_forecast = get_forecast(latitude, longitude)
+    if not whole_forecast:
+        return None
+    now = datetime.now().strftime("%H:00")
+    now_formated = int(now[:2])
+    return whole_forecast[0]["godziny"][now_formated]
 
-print(get_forecast_by_city(cities["Warszawa"]))
+def get_weather_now_by_city(city):
+    """
+    Funkcja zwracająca słownik z danymi pogodowymi dla aktualnej godziny dla danego miasta.
+    :param city: miasto, dla którego funkcja pobiera dane pogodowe
+    :return: słownik z danymi pogodowymi
+    """
+    latitude = Cities[city]["latitude"]
+    longitude = Cities[city]["longitude"]
+    return get_weather_now(latitude, longitude)
+
+print(get_forecast_by_city("Warszawa"))
+print(get_weather_now_by_city("Warszawa"))
