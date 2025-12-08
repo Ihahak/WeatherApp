@@ -4,8 +4,10 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pytest
 from unittest.mock import patch, MagicMock
+from datetime import datetime
+from freezegun import freeze_time
 
-from app.services.weather_api import get_forecast, get_forecast_by_city, cities
+from app.services.weather_api import get_forecast, get_forecast_by_city, get_weather_now, get_weather_now_by_city, Cities
 
 # --- Pzykładowe dane API ---
 
@@ -62,13 +64,60 @@ def test_get_forecast_api_error(mock_get):
 
 
 @patch("app.services.weather_api.get_forecast")
-def test_get_forecast_by_city_calls_get_forecast(mock_get_forecast):
-    mock_get_forecast.return_value = ["dummy"]
+@freeze_time("2025-01-01 10:30:00") # Ustawiamy aktualny czas na 10:30 (godzina 10)
+def test_get_weather_now_success(mock_get_forecast):
+    # Mockujemy wynik get_forecast tak, aby zwracał listę sformatowanych danych
+    # Wklejamy tutaj przykładową, już sformatowaną prognozę na 7 dni.
+    mock_hourly_data = []
+    for h in range(24):
+        # Symulujemy, że dla godziny 10:00 jest wyjątkowy kod pogody i temperatura
+        temp = 10 if h == 10 else 1 
+        kod_pogody = 3 if h == 10 else 2 
 
-    result = get_forecast_by_city(cities["Warszawa"])
+        mock_hourly_data.append({
+            "godzina": f"{str(h).zfill(2)}:00",
+            "temp": temp,
+            "odczuwalna_temp": 0,
+            "opady": 0.1,
+            "wiatr": 3,
+            "kod_pogody": kod_pogody
+        })
 
-    mock_get_forecast.assert_called_once_with(
-        cities["Warszawa"]["latitude"],
-        cities["Warszawa"]["longitude"]
+    mock_forecast_result = [
+        {"data": "01.01.2025", "godziny": mock_hourly_data},
+        # ... pozostałe 6 dni nie są potrzebne do tego testu ...
+    ]
+
+    mock_get_forecast.return_value = mock_forecast_result
+
+    result = get_weather_now(52.2298, 21.0118)
+
+    # Oczekujemy, że zwróci prognozę dla godziny 10 (indeks 10)
+    assert result["godzina"] == "10:00"
+    assert result["temp"] == 10
+    assert result["kod_pogody"] == 3
+
+
+@patch("app.services.weather_api.get_forecast")
+def test_get_weather_now_no_forecast(mock_get_forecast):
+    # Symulujemy, że get_forecast zwraca pustą listę (np. z powodu błędu API)
+    mock_get_forecast.return_value = []
+
+    result = get_weather_now(52.2298, 21.0118)
+
+    # Oczekujemy, że w takim przypadku funkcja zwróci None
+    assert result is None
+
+@patch("app.services.weather_api.get_weather_now")
+def test_get_weather_now_by_city_calls_get_weather_now(mock_get_weather_now):
+    miasto = "Kraków"
+    mock_get_weather_now.return_value = {"temp": 5}
+
+    result = get_weather_now_by_city(miasto)
+
+    # Sprawdzamy, czy get_weather_now zostało wywołane z danymi dla Krakowa
+    mock_get_weather_now.assert_called_once_with(
+        Cities[miasto]["latitude"],
+        Cities[miasto]["longitude"]
     )
-    assert result == ["dummy"]
+    assert result["temp"] == 5 
