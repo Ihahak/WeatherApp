@@ -48,7 +48,7 @@ def get_forecast(latitude, longitude):
         response = requests.get(base_url, params=params)
         response.raise_for_status()
         dane = response.json()
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
         print("Błąd podczas łączenia z API: ", e)
         return []
 
