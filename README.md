@@ -10,3 +10,6 @@ grupa: Bazyluk Anna, Gasik Zuzanna, Hankus Ida
 * tests - folder z testami kodu
 * main.py - główny plik uruchamiający aplikację
 * README.md - opis projektu
+
+## Potrzebne biblioteki:
+* pillow - do wyświetlania ikon
