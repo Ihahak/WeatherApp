@@ -58,7 +58,7 @@ def get_forecast(latitude, longitude):
     for i in range(0, 7):
         date = datetime.strptime(days["time"][i], "%Y-%m-%d").strftime("%d.%m.%Y")
         start = i * 24
-        end = start + 24
+        end = min(start + 24, len(hours["time"]))
         hour_forecast = []
         for j in range(start, end):
             h = datetime.strptime(hours["time"][j], "%Y-%m-%dT%H:%M").strftime("%H:%M")
@@ -106,9 +106,9 @@ def get_weather_now(latitude, longitude):
     whole_forecast = get_forecast(latitude, longitude)
     if not whole_forecast:
         return None
-    now = datetime.now().strftime("%H:00")
-    now_formated = int(now[:2])
-    return whole_forecast[0]["godziny"][now_formated]
+    now = datetime.now().hour
+    godziny = whole_forecast[0]["godziny"]
+    return godziny[now]
 
 def get_weather_now_by_city(city):
     """
@@ -120,5 +120,5 @@ def get_weather_now_by_city(city):
     longitude = Cities[city]["longitude"]
     return get_weather_now(latitude, longitude)
 
-print(get_forecast_by_city("Warszawa"))
-print(get_weather_now_by_city("Warszawa"))
+# print(get_forecast_by_city("Warszawa"))
+# print(get_weather_now_by_city("Warszawa"))
