@@ -4,6 +4,11 @@ import os
 import random
 from PIL import Image, ImageTk
 
+import sys
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(os.path.dirname(current_dir))
+sys.path.append(project_root)
+from app.services.weather_api import get_weather_now_by_city
 
 class WeatherAppUI:
     def __init__(self, root):
@@ -66,7 +71,7 @@ class WeatherAppUI:
         self.style = ttk.Style()
         try:
             self.style.theme_use('clam') # windows blokuje zmiany kolorów
-        except:
+        except ttk.TclError:
             pass
 
         # Mainframe
@@ -127,10 +132,6 @@ class WeatherAppUI:
                        selectforeground=[('readonly', self.colors["text_main"])])
 
         # to też do usunięcia zaznaczenia tekstu (zabieramy focus)
-    def _po_wyborze_miasta(self, event):
-        self.city_combo.selection_clear()
-        self.root.focus_set()
-        self.pobierz_dane()
 
     def _buduj_gui(self):
         main_frame = ttk.Frame(self.root, padding="25", style="Main.TFrame")
@@ -197,21 +198,29 @@ class WeatherAppUI:
         self.wind_label.grid(row=1, column=0, padx=20)
 
         # Kol 2
-        ttk.Label(details_frame, text="WILGOTNOŚĆ", style="Small.TLabel").grid(row=0, column=1, padx=20)
-        self.humidity_label = ttk.Label(details_frame, text="-- %", font=("Helvetica", 14, "bold"),
-                                        style="CardInfo.TLabel")
-        self.humidity_label.grid(row=1, column=1, padx=20)
+        ttk.Label(details_frame, text="ODCZUWALNA", style="Small.TLabel").grid(row=0, column=1, padx=20)
+        self.feels_like_label = ttk.Label(details_frame, text="--°", font=("Helvetica", 14, "bold"),
+                                          style="CardInfo.TLabel")
+        self.feels_like_label.grid(row=1, column=1, padx=20)
 
-    def aktualizuj_ui(self, dane_pogodowe):
-        miasto = dane_pogodowe.get("miasto", "Nieznane")
-        temp = dane_pogodowe.get("temp", 0)
-        kod_wmo = dane_pogodowe.get("kod_wmo", 0)
-        wiatr = dane_pogodowe.get("wiatr", 0)
 
-        self.location_label.config(text=miasto)
+    def _po_wyborze_miasta(self, event):
+        self.city_combo.selection_clear()
+        self.root.focus_set()
+        self.pobierz_dane()
+
+# Ida zwraca: {'temp': X, 'wiatr': Y, 'kod_pogody': Z, ...}
+    def aktualizuj_ui(self, dane_pogodowe, nazwa_miasta):
+
+        temp = dane_pogodowe.get("temp", "--")
+        wiatr = dane_pogodowe.get("wiatr", "--")
+        kod_wmo = dane_pogodowe.get("kod_pogody", 0)
+        odczuwalna = dane_pogodowe.get("odczuwalna_temp", "--")
+
+        self.location_label.config(text=nazwa_miasta)
         self.temp_label.config(text=f"{temp}°")
         self.wind_label.config(text=f"{wiatr} km/h")
-        self.humidity_label.config(text=f"{random.randint(30, 90)} %")
+        self.feels_like_label.config(text=f"{odczuwalna}°")
 
         info = self.weather_map.get(kod_wmo, {"opis": "Nieznana", "ikona": "cloudy.png"})
         self.desc_label.config(text=info["opis"])
@@ -231,18 +240,36 @@ class WeatherAppUI:
         except Exception as e:
             print(f"Błąd: {e}")
 
+
     def pobierz_dane(self):
         miasto = self.city_combo.get().strip()
 
-        # Symulacja API
-        dane = {
-            "miasto": miasto,
-            "temp": random.randint(-5, 28),
-            "kod_wmo": random.choice(list(self.weather_map.keys())),
-            "wiatr": random.randint(5, 60)
-        }
-        self.aktualizuj_ui(dane)
+        self.root.config(cursor="watch")
+        self.root.update()
 
+        try:
+            dane = get_weather_now_by_city(miasto)
+
+            if dane is None:
+                messagebox.showerror("Błąd",f"Nie udało się pobrać danych dla miasta: {miasto}.\nSprawdź połączenie lub spróbuj później.")
+                self.czysc_widok_po_bledzie()
+            else:
+                self.aktualizuj_ui(dane, miasto)
+
+        except Exception as e:
+            print(f"Błąd krytyczny: {e}")
+            messagebox.showerror("Błąd", "Wystąpił nieoczekiwany błąd aplikacji.")
+
+        finally:
+            self.root.config(cursor="")
+
+    def czysc_widok_po_bledzie(self):
+        self.location_label.config(text="Błąd")
+        self.temp_label.config(text="--")
+        self.desc_label.config(text="Brak danych")
+        self.wind_label.config(text="--")
+        self.feels_like_label.config(text="--")
+        self.icon_label.config(image="", text="❌")
 
 if __name__ == "__main__":
     root = tk.Tk()
