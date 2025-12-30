@@ -1,5 +1,6 @@
-import requests
 from datetime import datetime
+
+import requests
 
 Cities = {"Warszawa": {"latitude": 52.2298, "longitude": 21.0118},
           "Kraków": {"latitude": 50.0647, "longitude": 19.9450},
@@ -13,6 +14,7 @@ Cities = {"Warszawa": {"latitude": 52.2298, "longitude": 21.0118},
           "Białystok": {"latitude": 53.1325, "longitude": 23.1688},
           "Rzeszów": {"latitude": 50.0413, "longitude": 21.9990},
           }
+
 
 def get_forecast(latitude, longitude):
     """
@@ -87,6 +89,7 @@ def get_forecast(latitude, longitude):
 
     return days_formated
 
+
 def get_forecast_by_city(city):
     """
     Funkcja pobiera nazwę miasta razem z jego współrzędnymi geograficznymi i zwraca sformatowane dane prognozy pogody najbliższych 7 dni.
@@ -95,6 +98,7 @@ def get_forecast_by_city(city):
     """
     city_data = Cities[city]
     return get_forecast(city_data["latitude"], city_data["longitude"])
+
 
 def get_weather_now(latitude, longitude):
     """
@@ -109,6 +113,7 @@ def get_weather_now(latitude, longitude):
     now = datetime.now().hour
     godziny = whole_forecast[0]["godziny"]
     return godziny[now]
+
 
 def get_weather_now_by_city(city):
     """

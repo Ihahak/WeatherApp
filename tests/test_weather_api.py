@@ -1,13 +1,14 @@
-import sys
 import os
+import sys
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pytest
 from unittest.mock import patch, MagicMock
-from datetime import datetime
 from freezegun import freeze_time
 
-from app.services.weather_api import get_forecast, get_forecast_by_city, get_weather_now, get_weather_now_by_city, Cities
+from app.services.weather_api import get_forecast, get_weather_now, get_weather_now_by_city, \
+    Cities
 
 # --- Pzykładowe dane API ---
 
@@ -38,6 +39,7 @@ MOCK_API_RESPONSE = {
     },
 }
 
+
 # --- TESTY ---
 
 @patch("app.services.weather_api.requests.get")
@@ -64,15 +66,15 @@ def test_get_forecast_api_error(mock_get):
 
 
 @patch("app.services.weather_api.get_forecast")
-@freeze_time("2025-01-01 10:30:00") # Ustawiamy aktualny czas na 10:30 (godzina 10)
+@freeze_time("2025-01-01 10:30:00")  # Ustawiamy aktualny czas na 10:30 (godzina 10)
 def test_get_weather_now_success(mock_get_forecast):
     # Mockujemy wynik get_forecast tak, aby zwracał listę sformatowanych danych
     # Wklejamy tutaj przykładową, już sformatowaną prognozę na 7 dni.
     mock_hourly_data = []
     for h in range(24):
         # Symulujemy, że dla godziny 10:00 jest wyjątkowy kod pogody i temperatura
-        temp = 10 if h == 10 else 1 
-        kod_pogody = 3 if h == 10 else 2 
+        temp = 10 if h == 10 else 1
+        kod_pogody = 3 if h == 10 else 2
 
         mock_hourly_data.append({
             "godzina": f"{str(h).zfill(2)}:00",
@@ -108,6 +110,7 @@ def test_get_weather_now_no_forecast(mock_get_forecast):
     # Oczekujemy, że w takim przypadku funkcja zwróci None
     assert result is None
 
+
 @patch("app.services.weather_api.get_weather_now")
 def test_get_weather_now_by_city_calls_get_weather_now(mock_get_weather_now):
     miasto = "Kraków"
@@ -120,4 +123,4 @@ def test_get_weather_now_by_city_calls_get_weather_now(mock_get_weather_now):
         Cities[miasto]["latitude"],
         Cities[miasto]["longitude"]
     )
-    assert result["temp"] == 5 
+    assert result["temp"] == 5

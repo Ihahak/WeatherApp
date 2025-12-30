@@ -1,14 +1,15 @@
+import os
+import sys
 import tkinter as tk
 from tkinter import ttk, messagebox
-import os
-import random
+
 from PIL import Image, ImageTk
 
-import sys
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(os.path.dirname(current_dir))
 sys.path.append(project_root)
 from app.services.weather_api import get_weather_now_by_city
+
 
 class WeatherAppUI:
     def __init__(self, root):
@@ -30,7 +31,7 @@ class WeatherAppUI:
         }
         self.root.configure(bg=self.colors["bg_window"])
 
-        #ikony
+        # ikony
         base_dir = os.path.dirname(__file__)
         self.icons_dir = os.path.join(base_dir, "icons")
 
@@ -70,7 +71,7 @@ class WeatherAppUI:
     def _konfiguruj_style(self):
         self.style = ttk.Style()
         try:
-            self.style.theme_use('clam') # windows blokuje zmiany kolorów
+            self.style.theme_use('clam')  # windows blokuje zmiany kolorów
         except ttk.TclError:
             pass
 
@@ -203,13 +204,12 @@ class WeatherAppUI:
                                           style="CardInfo.TLabel")
         self.feels_like_label.grid(row=1, column=1, padx=20)
 
-
     def _po_wyborze_miasta(self, event):
         self.city_combo.selection_clear()
         self.root.focus_set()
         self.pobierz_dane()
 
-# Ida zwraca: {'temp': X, 'wiatr': Y, 'kod_pogody': Z, ...}
+    # Ida zwraca: {'temp': X, 'wiatr': Y, 'kod_pogody': Z, ...}
     def aktualizuj_ui(self, dane_pogodowe, nazwa_miasta):
 
         temp = dane_pogodowe.get("temp", "--")
@@ -240,7 +240,6 @@ class WeatherAppUI:
         except Exception as e:
             print(f"Błąd: {e}")
 
-
     def pobierz_dane(self):
         miasto = self.city_combo.get().strip()
 
@@ -251,7 +250,8 @@ class WeatherAppUI:
             dane = get_weather_now_by_city(miasto)
 
             if dane is None:
-                messagebox.showerror("Błąd",f"Nie udało się pobrać danych dla miasta: {miasto}.\nSprawdź połączenie lub spróbuj później.")
+                messagebox.showerror("Błąd",
+                                     f"Nie udało się pobrać danych dla miasta: {miasto}.\nSprawdź połączenie lub spróbuj później.")
                 self.czysc_widok_po_bledzie()
             else:
                 self.aktualizuj_ui(dane, miasto)
@@ -270,6 +270,7 @@ class WeatherAppUI:
         self.wind_label.config(text="--")
         self.feels_like_label.config(text="--")
         self.icon_label.config(image="", text="❌")
+
 
 if __name__ == "__main__":
     root = tk.Tk()

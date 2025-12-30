@@ -1,5 +1,6 @@
 import geocoder
 
+
 def get_location():
     """
     Funkcja zwracająca przybliżone współrzędne geograficzne urządzenia na podstawie adresu IP.
@@ -14,7 +15,7 @@ def get_location():
             print("Nie udało się pobrać lokalizacji")
             return None
     except Exception as e:
-        print( f"Błąd: {e}")
+        print(f"Błąd: {e}")
         return None
 
 # print(get_location())
