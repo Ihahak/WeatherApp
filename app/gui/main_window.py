@@ -7,10 +7,18 @@ import sys
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(os.path.dirname(current_dir))
 sys.path.append(project_root)
-from app.services.weather_api import get_weather_now_by_city, get_forecast_by_city
+from app.services.weather_api import get_weather_now_by_city, get_forecast_by_city, get_weather_now, get_forecast
+from app.services.user_geolocation import get_location
 
 class WeatherAppUI:
     def __init__(self, root):
+        """
+        Konstruktor klasy.
+        Robi główne okno aplikacji (ustawia tytuł, wymiary i kolory okna)
+        Wczytuje ikony oraz tworzy listę miast do wybrania.
+        Wczytuje mapę kodów pogodowych z naszego źródła i przypisuje im odpowiednią ikonę.
+        Wywołuje metody konfigurujące style i budujące interfejs oraz planuje pierwsze automatyczne pobieranie danych.
+        """
         self.root = root
         self.root.title("Aplikacja Pogodowa")
         self.root.geometry("800x550")
@@ -37,7 +45,7 @@ class WeatherAppUI:
 
         # lista miast
         self.dostepne_miasta = [
-            "Warszawa", "Kraków", "Łódź", "Wrocław", "Poznań",
+            "Moja lokalizacja", "Warszawa", "Kraków", "Łódź", "Wrocław", "Poznań",
             "Gdańsk", "Szczecin", "Bydgoszcz", "Lublin", "Białystok", "Rzeszów"
         ]
 
@@ -71,10 +79,15 @@ class WeatherAppUI:
         self.root.after(100, self.pobierz_dane)
 
     def _konfiguruj_style(self):
+        """
+        Odpowiada za wygląd aplikacji. Definiuje style tkk (czcionki, kolory tła/tekstu) dla różnych elementów interfejsu
+        (etykiety, przyciski itp.).
+        :raises tk.TclError: Idzie dalej, jeśli theme nie może być zastosowany
+        """
         self.style = ttk.Style()
         try:
-            self.style.theme_use('clam') # windows blokuje zmiany kolorów
-        except ttk.TclError:
+            self.style.theme_use('clam')
+        except tk.TclError:
             pass
 
         # Mainframe
@@ -83,10 +96,6 @@ class WeatherAppUI:
         # ramka
         self.style.configure("Card.TFrame", background=self.colors["bg_card"], relief="flat")
         self.style.configure("Card.TLabelframe", background=self.colors["bg_card"], relief="flat", borderwidth=0)
-        # self.style.configure("Card.TLabelframe.Label",
-        #                      background=self.colors["bg_card"],
-        #                      foreground=self.colors["accent"],
-        #                      font=("Helvetica", 10, "bold"))
 
         # labele
         self.style.configure("TLabel",
@@ -138,71 +147,55 @@ class WeatherAppUI:
                              background=self.colors["accent"],
                              arrowcolor="black")
 
-        # # przycisk
-        # self.style.configure("TButton",
-        #                      font=("Helvetica", 10, "bold"),
-        #                      background=self.colors["accent"],
-        #                      foreground="white",
-        #                      borderwidth=0)
-        # self.style.map("TButton", background=[("active", self.colors["text_main"])])
-        #
-        # # combobox - lista
-        # self.style.configure("TCombobox",
-        #                      fieldbackground=self.colors["input_bg"],
-        #                      background=self.colors["accent"],
-        #                      foreground=self.colors["text_main"],
-        #                      arrowcolor="white")
-        #
-        # # tutaj usuwam zaznaczenie tekstu (brzydko wyglada)
-        # self.style.map('TCombobox', fieldbackground=[('readonly', self.colors["input_bg"])],
-        #                selectbackground=[('readonly', self.colors["input_bg"])],
-        #                selectforeground=[('readonly', self.colors["text_main"])])
-        #
-        # # to też do usunięcia zaznaczenia tekstu (zabieramy focus)
 
     def _buduj_gui(self):
+        """
+        Buduje i organizuje graficzny układ aplikacji.
+        Dodaje widżety (kontenery, napisy, przyciski, wybór miasta, pole na wykres) i
+        układa je w odpowiednie miejsca w oknie.
+        """
         main_frame = ttk.Frame(self.root, padding="15", style="Main.TFrame")
-        main_frame.pack(fill=tk.BOTH, expand=True)
+        main_frame.pack(fill="both", expand=True)
 
         # góra
         top_bar = ttk.Frame(main_frame, style="Main.TFrame")
-        top_bar.pack(fill=tk.X, pady=(0, 15))
-        ttk.Label(top_bar, text="Pogoda", style="Title.TLabel").pack(side=tk.LEFT, padx=(0,20))
+        top_bar.pack(fill="x", pady=(0, 15))
+        ttk.Label(top_bar, text="Pogoda", style="Title.TLabel").pack(side="left", padx=(0,20))
 
         # wyszukiwanie
         input_frame = ttk.Frame(top_bar, style="Main.TFrame")
-        input_frame.pack(side=tk.RIGHT, fill=tk.X, expand=True)
+        input_frame.pack(side="right", fill="x", expand=True)
 
-        # combobox (blokuje wpisywanie, ma wartosc domyslna)
+        # combobox (blokuje wpisywanie, ma wartość domyślną)
         self.city_combo = ttk.Combobox(input_frame,
                                        values=self.dostepne_miasta,
                                        font=("Helvetica", 11),
                                        state="readonly")
 
-        self.city_combo.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10), ipady=4)
-        self.city_combo.set("Warszawa")
+        self.city_combo.pack(side="left", fill="x", expand=True, padx=(0, 10), ipady=4)
+        self.city_combo.set("Moja lokalizacja")
 
         # enter + klikniecie myszka
         self.city_combo.bind("<<ComboboxSelected>>", self._po_wyborze_miasta)
         self.city_combo.bind("<Return>", lambda event: self.pobierz_dane())
 
         ttk.Button(input_frame, text="SZUKAJ", style="Search.TButton", command=self.pobierz_dane, cursor="hand2").pack(
-            side=tk.RIGHT, ipadx=10, ipady=4)
+            side="right", ipadx=10, ipady=4)
 
         # glowna karta
         self.result_frame = ttk.LabelFrame(main_frame, padding="0", style="Card.TLabelframe")
-        self.result_frame.pack(fill=tk.BOTH, expand=True)
+        self.result_frame.pack(fill="both", expand=True)
 
         inner_frame = ttk.Frame(self.result_frame, style="Card.TFrame", padding="20")
-        inner_frame.pack(fill=tk.BOTH, expand=True)
+        inner_frame.pack(fill="both", expand=True)
 
-        # kontener srodkowy
+        # środek
         middle_container = ttk.Frame(inner_frame, style="Card.TFrame")
-        middle_container.pack(fill=tk.BOTH, expand=True)
+        middle_container.pack(fill="both", expand=True)
 
-        #lewo
+        # lewo
         left_panel = ttk.Frame(middle_container, style="Card.TFrame")
-        left_panel.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
+        left_panel.pack(side="left", fill="both", expand=True, padx=(0, 10))
 
         self.location_label = ttk.Label(left_panel, text="Wybierz miasto", font=("Helvetica", 20, "bold"),
                                         style="CardInfo.TLabel")
@@ -218,24 +211,24 @@ class WeatherAppUI:
         self.desc_label.pack(pady=(0, 10))
 
         # Separator pionowy
-        ttk.Separator(middle_container, orient='vertical').pack(side=tk.LEFT, fill='y', padx=10, pady=10)
+        ttk.Separator(middle_container, orient='vertical').pack(side="left", fill='y', padx=10, pady=10)
 
-        # prawo - wykres
+        # prawo — wykres
         right_panel = ttk.Frame(middle_container, style="Card.TFrame")
-        right_panel.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=(10, 0))
+        right_panel.pack(side="right", fill="both", expand=True, padx=(10, 0))
 
         ttk.Label(right_panel, text="Prognoza na tydzień",
                   style="ChartTitle.TLabel").pack(pady=(15, 10))
 
         self.chart_canvas = tk.Canvas(right_panel, width=400, height=200, bg=self.colors["bg_card"],
                                       highlightthickness=0)
-        self.chart_canvas.pack(fill=tk.BOTH, expand=True)
+        self.chart_canvas.pack(fill="both", expand=True)
 
         # dół
         ttk.Separator(inner_frame, orient='horizontal').pack(fill='x', pady=(10, 15))
 
         details_frame = ttk.Frame(inner_frame, style="Card.TFrame")
-        details_frame.pack(fill=tk.X, pady=(0, 5))
+        details_frame.pack(fill="x", pady=(0, 5))
         details_frame.columnconfigure(0, weight=1)
         details_frame.columnconfigure(1, weight=1)
 
@@ -248,13 +241,25 @@ class WeatherAppUI:
         self.feels_like_label.grid(row=1, column=1)
 
 
-    def _po_wyborze_miasta(self, event):
+    def _po_wyborze_miasta(self, _):
+        """
+        Funkcja pomocnicza, która uruchamia się automatycznie po wybraniu miasta z listy.
+        Ma za zadanie wywołanie pobierania danych, a potem usunięcie zaznaczenia tekstu w polu wyboru i
+        przeniesienie focusu do root widżetu.
+        """
         self.city_combo.selection_clear()
         self.root.focus_set()
         self.pobierz_dane()
 
 # Ida zwraca: {'temp': X, 'wiatr': Y, 'kod_pogody': Z, ...}
     def aktualizuj_ui(self, dane_obecne, dane_prognoza, nazwa_miasta):
+        """
+        Funkcja odświeżająca widok. Przyjmuje pobrane dane — obecne i prognozę i wpisuje je w odpowiednie etykiety.
+        Wywołuje ładowanie ikony oraz zleca narysowanie wykresu.
+        :param dane_obecne: Słownik z obecnymi danymi pogodowymi.
+        :param dane_prognoza: Słownik z prognozowanymi danymi pogodowymi.
+        :param nazwa_miasta: Nazwa wyświetlająca się.
+        """
 
         temp = dane_obecne.get("temp", "--")
         wiatr_wart = dane_obecne.get("wiatr")
@@ -276,6 +281,12 @@ class WeatherAppUI:
         self._rysuj_wykres(przetworzona_prognoza)
 
     def _przetworz_prognoze(self, dane_prognoza):
+        """
+        Funkcja pomocnicza, która tworzy listę — tłumaczy dane z API na format potrzebny do wykresu,
+        zawiera nazwę dnia, maksymalną temperaturę, ikonę.
+        :param dane_prognoza: Lista słowników, gdzie każdy słownik zawiera dane prognozy dla konkretnego dnia.
+        :return: Lista słowników, gdzie każdy zawiera dzień, temperaturę i ikonę.
+        """
         wynik = []
         dni_tygodnia = ["Pon", "Wt", "Śr", "Czw", "Pt", "Sob", "Ndz"]
 
@@ -303,6 +314,10 @@ class WeatherAppUI:
         return wynik
 
     def _laduj_ikone_glowna(self, nazwa_pliku):
+        """
+        Wczytuje odpowiednią ikonę z dysku, przeskalowuje ją i wyświetla na głównym panelu.
+        Obsługuje brak ikony — wyświetla "placeholder" (napis brak ikony)
+        """
         pelna_sciezka = os.path.join(self.icons_dir, nazwa_pliku)
         if not os.path.exists(pelna_sciezka):
             self.icon_label.config(text="[Brak ikony]", image="")
@@ -317,6 +332,12 @@ class WeatherAppUI:
             print(f"Błąd: {e}")
 
     def _rysuj_wykres(self, dane):
+        """
+        Rysuje wykres w Canvas. Oblicza współrzędne punktów na podstawie temperatur, rysuje linię łączącą
+        oraz kropki dla poszczególnych dni, podpisy i mini ikonki.
+        Obsługuje brak danych.
+        :param dane: lista słowników z danymi prognozy.
+        """
         self.chart_canvas.delete("all")
         self.chart_icons_cache = []
 
@@ -370,28 +391,54 @@ class WeatherAppUI:
                 self.chart_canvas.create_image(x, height - 10, image=photo)
 
     def pobierz_dane(self):
-        miasto = self.city_combo.get().strip()
+        """
+        Pobiera dane dla aktualnego wyboru użytkownika (miasto lub aktualna lokalizacja) i aktualizuje interfejs.
+        Jeśli wystąpi błąd — powiadamia użytkownika i czyści interfejs.
+        """
+        wybor = self.city_combo.get().strip()
 
         self.root.config(cursor="watch")
         self.root.update()
 
 
         try:
-            obecna = get_weather_now_by_city(miasto)
-            prognoza = get_forecast_by_city(miasto)
+            if wybor == "Moja lokalizacja":
+                # Zwraca [lat, lng] lub None
+                wspolrzedne = get_location()
+
+                if not wspolrzedne:
+                    raise Exception("Nie udało się wykryć Twojej lokalizacji (sprawdź połączenie).")
+
+                lat, lon = wspolrzedne
+                obecna = get_weather_now(lat, lon)
+                prognoza = get_forecast(lat, lon)
+
+                nazwa_do_wyswietlenia = "Twoja lokalizacja"
+            else:
+                obecna = get_weather_now_by_city(wybor)
+                prognoza = get_forecast_by_city(wybor)
+                nazwa_do_wyswietlenia = wybor
+
+
 
             if obecna is None or not prognoza:
-                messagebox.showerror("Błąd", f"Nie udało się pobrać danych dla: {miasto}")
+                messagebox.showerror("Błąd", f"Nie udało się pobrać danych dla: {wybor}")
+                self.czysc_widok_po_bledzie()
             else:
-                self.aktualizuj_ui(obecna, prognoza, miasto)
+                self.aktualizuj_ui(obecna, prognoza, nazwa_do_wyswietlenia)
 
         except Exception as e:
             print(f"Błąd krytyczny: {e}")
             messagebox.showerror("Błąd", f"Wystąpił błąd: {e}")
+            self.czysc_widok_po_bledzie()
         finally:
             self.root.config(cursor="")
 
     def czysc_widok_po_bledzie(self):
+        """
+        Czyści interfejs, gdy wystąpi błąd (np. brak internetu).
+        Ustawia wszystkie pola tekstowe na wartości domyślne i usuwa nieaktualne ikony.
+        """
         self.location_label.config(text="Błąd")
         self.temp_label.config(text="--")
         self.desc_label.config(text="Brak danych")
@@ -400,6 +447,6 @@ class WeatherAppUI:
         self.icon_label.config(image="", text="❌")
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = WeatherAppUI(root)
-    root.mainloop()
+    main_window = tk.Tk()
+    app = WeatherAppUI(main_window)
+    main_window.mainloop()

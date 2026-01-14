@@ -13,4 +13,5 @@ grupa: Bazyluk Anna, Gasik Zuzanna, Hankus Ida
 
 ## Potrzebne biblioteki:
 * pillow - do wyświetlania ikon
-* matplotlib - do wyświetlania wykresów
+* requests - do komunikacji z API
+* geocoder - do wykrywania lokalizacji użytkownika na podstawie adresu IP

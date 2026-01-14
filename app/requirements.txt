@@ -1,0 +1,5 @@
+Pillow
+requests
+geocoder
+
+# pip install -r requirements.txt
