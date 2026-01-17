@@ -8,6 +8,7 @@ class TestSystemStructure(unittest.TestCase):
 
     def setUp(self):
         self.root = tk.Tk()
+        # Ukrywamy okno podczas testów
         self.root.withdraw()
         # Blokujemy automatyczne zapytania sieciowe przy starcie
         with patch.object(tk.Tk, 'after'):
@@ -18,8 +19,11 @@ class TestSystemStructure(unittest.TestCase):
 
     def test_initial_window_properties(self):
         """Sprawdza czy tytuł i rozmiar okna są poprawne."""
+        # WYMUSZENIE ODŚWIEŻENIA
+        self.root.update()
+        """Sprawdza czy tytuł i rozmiar okna są poprawne."""
         self.assertEqual(self.root.title(), "Aplikacja Pogodowa")
-        # Sprawdzenie czy geometria została ustawiona (może zwracać format '800x550+x+y')
+        # Sprawdzenie czy geometria została ustawiona
         self.assertTrue(self.root.geometry().startswith("800x550"))
 
     def test_widgets_existence(self):
