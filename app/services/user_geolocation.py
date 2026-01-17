@@ -1,14 +1,14 @@
 import geocoder
 
-
 def get_location():
     """
     Funkcja zwracająca przybliżone współrzędne geograficzne urządzenia na podstawie adresu IP.
     :return: Współrzędne geograficzne urządzenia w postaci [lat, lng]
     """
-    location = geocoder.ip('me')
-
     try:
+        # Przeniesiono tę linię do środka bloku try, aby wyłapać błąd braku sieci
+        location = geocoder.ip('me')
+
         if location.ok:
             return location.latlng
         else:
@@ -17,5 +17,3 @@ def get_location():
     except Exception as e:
         print(f"Błąd: {e}")
         return None
-
-# print(get_location())
