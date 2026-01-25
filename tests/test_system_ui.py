@@ -1,7 +1,9 @@
-import unittest
 import tkinter as tk
+import unittest
 from unittest.mock import patch
+
 from app.gui.main_window import WeatherAppUI
+
 
 class TestSystemStructure(unittest.TestCase):
     """Testy sprawdzające strukturę i inicjalizację GUI (Smoke Tests)."""
@@ -39,7 +41,7 @@ class TestSystemStructure(unittest.TestCase):
         """Sprawdza czy lista miast w Comboboxie zawiera wymagane pozycje."""
         wymagane_miasta = ["Warszawa", "Kraków", "Łódź", "Wrocław", "Poznań", "Moja lokalizacja"]
         dostepne = self.app.dostepne_miasta
-        
+
         for miasto in wymagane_miasta:
             self.assertIn(miasto, dostepne, f"Brakuje miasta {miasto} na liście")
 
@@ -49,6 +51,7 @@ class TestSystemStructure(unittest.TestCase):
         self.assertEqual(self.app.city_combo.get(), "Moja lokalizacja")
         # Domyślny tekst temperatury (przed pobraniem danych)
         self.assertEqual(self.app.temp_label.cget("text"), "--°")
+
 
 if __name__ == '__main__':
     unittest.main()

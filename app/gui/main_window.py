@@ -1,14 +1,17 @@
-import tkinter as tk
-from tkinter import ttk, messagebox
 import os
-from PIL import Image, ImageTk
-from datetime import datetime
 import sys
+import tkinter as tk
+from datetime import datetime
+from tkinter import ttk, messagebox
+
+from PIL import Image, ImageTk
+
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(os.path.dirname(current_dir))
 sys.path.append(project_root)
 from app.services.weather_api import get_weather_now_by_city, get_forecast_by_city, get_weather_now, get_forecast
 from app.services.user_geolocation import get_location
+
 
 class WeatherAppUI:
     def __init__(self, root):
@@ -38,7 +41,7 @@ class WeatherAppUI:
         }
         self.root.configure(bg=self.colors["bg_window"])
 
-        #ikony
+        # ikony
         base_dir = os.path.dirname(__file__)
         self.icons_dir = os.path.join(base_dir, "icons")
         self.chart_icons_cache = []
@@ -133,7 +136,6 @@ class WeatherAppUI:
                              foreground=self.colors["text_main"],
                              font=("Helvetica", 14, "bold"))
 
-
         self.style.configure("Search.TButton",
                              font=("Helvetica", 10, "bold"),
                              background=self.colors["accent"],
@@ -147,7 +149,6 @@ class WeatherAppUI:
                              background=self.colors["accent"],
                              arrowcolor="black")
 
-
     def _buduj_gui(self):
         """
         Buduje i organizuje graficzny układ aplikacji.
@@ -160,7 +161,7 @@ class WeatherAppUI:
         # góra
         top_bar = ttk.Frame(main_frame, style="Main.TFrame")
         top_bar.pack(fill="x", pady=(0, 15))
-        ttk.Label(top_bar, text="Pogoda", style="Title.TLabel").pack(side="left", padx=(0,20))
+        ttk.Label(top_bar, text="Pogoda", style="Title.TLabel").pack(side="left", padx=(0, 20))
 
         # wyszukiwanie
         input_frame = ttk.Frame(top_bar, style="Main.TFrame")
@@ -240,7 +241,6 @@ class WeatherAppUI:
         self.feels_like_label = ttk.Label(details_frame, text="--°", style="Value.TLabel")
         self.feels_like_label.grid(row=1, column=1)
 
-
     def _po_wyborze_miasta(self, _):
         """
         Funkcja pomocnicza, która uruchamia się automatycznie po wybraniu miasta z listy.
@@ -251,7 +251,7 @@ class WeatherAppUI:
         self.root.focus_set()
         self.pobierz_dane()
 
-# Ida zwraca: {'temp': X, 'wiatr': Y, 'kod_pogody': Z, ...}
+    # Ida zwraca: {'temp': X, 'wiatr': Y, 'kod_pogody': Z, ...}
     def aktualizuj_ui(self, dane_obecne, dane_prognoza, nazwa_miasta):
         """
         Funkcja odświeżająca widok. Przyjmuje pobrane dane — obecne i prognozę i wpisuje je w odpowiednie etykiety.
@@ -400,7 +400,6 @@ class WeatherAppUI:
         self.root.config(cursor="watch")
         self.root.update()
 
-
         try:
             if wybor == "Moja lokalizacja":
                 # Zwraca [lat, lng] lub None
@@ -418,8 +417,6 @@ class WeatherAppUI:
                 obecna = get_weather_now_by_city(wybor)
                 prognoza = get_forecast_by_city(wybor)
                 nazwa_do_wyswietlenia = wybor
-
-
 
             if obecna is None or not prognoza:
                 messagebox.showerror("Błąd", f"Nie udało się pobrać danych dla: {wybor}")
@@ -445,6 +442,7 @@ class WeatherAppUI:
         self.wind_label.config(text="--")
         self.feels_like_label.config(text="--")
         self.icon_label.config(image="", text="❌")
+
 
 if __name__ == "__main__":
     main_window = tk.Tk()

@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import patch, MagicMock
+
 from app.services.user_geolocation import get_location
+
 
 class TestUserGeolocation(unittest.TestCase):
 
@@ -39,6 +41,7 @@ class TestUserGeolocation(unittest.TestCase):
         result = get_location()
 
         self.assertIsNone(result)
+
 
 if __name__ == '__main__':
     unittest.main()

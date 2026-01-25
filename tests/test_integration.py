@@ -1,15 +1,17 @@
-import unittest
 import tkinter as tk
-from unittest.mock import patch, MagicMock
+import unittest
+from unittest.mock import patch
+
 from app.gui.main_window import WeatherAppUI
 
+
 class TestIntegrationGUI(unittest.TestCase):
-    
+
     def setUp(self):
         """Przygotowanie środowiska przed każdym testem (tworzenie okna)."""
         self.root = tk.Tk()
         # Ukrywamy okno podczas testów
-        self.root.withdraw() 
+        self.root.withdraw()
         # Patchujemy 'root.after' aby nie uruchamiał się automat przy starcie inita
         with patch.object(tk.Tk, 'after'):
             self.app = WeatherAppUI(self.root)
@@ -37,18 +39,18 @@ class TestIntegrationGUI(unittest.TestCase):
             "data": "17.01.2026",
             "temp_max": 16,
             "temp_min": 10,
-            "godziny": [{"kod_pogody": 0} for _ in range(24)] # Fake godziny
+            "godziny": [{"kod_pogody": 0} for _ in range(24)]  # Fake godziny
         }]
 
         # 2. Symulacja interakcji użytkownika
         self.app.city_combo.set("Wrocław")
-        
+
         # 3. Wywołanie metody, która spina wszystko
         self.app.pobierz_dane()
 
         # 4. Sprawdzenie czy Mocki zostały wywołane
         mock_weather_now.assert_called_with("Wrocław")
-        
+
         # 5. Weryfikacja stanu GUI (Czy etykiety wyświetlają to co zwróciło API?)
         self.assertEqual(self.app.location_label.cget("text"), "Wrocław")
         self.assertEqual(self.app.temp_label.cget("text"), "15.5°")
@@ -62,7 +64,7 @@ class TestIntegrationGUI(unittest.TestCase):
         """Test integracyjny: Sprawdza czy błąd API wywołuje okno błędu w GUI."""
         # Symulacja błędu API (zwraca None)
         mock_weather_now.return_value = None
-        
+
         self.app.city_combo.set("Gdańsk")
         self.app.pobierz_dane()
 
@@ -70,6 +72,7 @@ class TestIntegrationGUI(unittest.TestCase):
         mock_msgbox.assert_called()
         # Sprawdź czy UI zostało wyczyszczone (pokazuje błąd)
         self.assertEqual(self.app.location_label.cget("text"), "Błąd")
+
 
 if __name__ == '__main__':
     unittest.main()
