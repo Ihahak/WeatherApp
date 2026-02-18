@@ -1,5 +1,5 @@
 # WeatherApp - Aplikacja Pogodowa
-Projekt zaliczeniowy stworzony w języku Python, służący do sprawdzania aktualnej pogody oraz prognozy długoterminowej. Aplikacja wykorzystuje API Open-Meteo oraz bibliotekę Tkinter do obsługi interfejsu graficznego.
+Projekt zaliczeniowy stworzony w języku Python, służący do sprawdzania aktualnej pogody oraz prognozy długoterminowej. Aplikacja wykorzystuje API [Open-Meteo](https://open-meteo.com/) oraz bibliotekę Tkinter do obsługi interfejsu graficznego.
 
 ## Autorzy
 * Bazyluk Anna
